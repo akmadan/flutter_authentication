@@ -14,9 +14,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home:Home()
-    );
+        debugShowCheckedModeBanner: false,
+        home: StreamBuilder(
+            stream: FirebaseAuth.instance.authStateChanges(), //1
+            builder: (context, usersnapshot) {
+              if (usersnapshot.hasData) {
+                return NewPage();
+              } else {
+                return Home();
+              }
+            }));
   }
 }
 
@@ -27,26 +34,19 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   Future<UserCredential> signInWithGoogle() async {
-    // Trigger the authentication flow
     final GoogleSignInAccount googleUser = await GoogleSignIn().signIn();
 
     print(googleUser.displayName);
-    // Obtain the auth details from the request
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
 
-    // Create a new credential
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
 
-    // Once signed in, return the UserCredential
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>NewPage()));
     return await FirebaseAuth.instance.signInWithCredential(credential);
-
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -54,17 +54,17 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text('Google Sign In'),
       ),
-      body: Center(child: TextButton(
-        child:Text('Sign In via Google'),
-        onPressed: (){
-          signInWithGoogle();
-        },
-      ),),
+      body: Center(
+        child: TextButton(
+          child: Text('Sign In via Google'),
+          onPressed: () {
+            signInWithGoogle();
+          },
+        ),
+      ),
     );
   }
 }
-
-
 
 class NewPage extends StatefulWidget {
   @override
@@ -75,14 +75,17 @@ class _NewPageState extends State<NewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('New Page'),),
-      body: Center(child: TextButton(child: Text('Logout'),onPressed: (){
-        FirebaseAuth.instance.signOut();
-
-      },),
+      appBar: AppBar(
+        title: Text('New Page'),
+      ),
+      body: Center(
+        child: TextButton(
+          child: Text('Logout'),
+          onPressed: () {
+            FirebaseAuth.instance.signOut();
+          },
+        ),
       ),
     );
   }
 }
-
-
